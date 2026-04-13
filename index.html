@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Digital Will DApp</title>
+
+  <!-- ethers -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+
+  <!-- CSS -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #667eea, #764ba2);
+      color: white;
+      text-align: center;
+      padding: 50px;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 30px;
+      border-radius: 15px;
+      width: 400px;
+      margin: auto;
+      box-shadow: 0px 0px 20px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    button {
+      width: 80%;
+      padding: 12px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .connect {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .death {
+      background-color: #ff4d4d;
+      color: white;
+    }
+
+    .withdraw {
+      background-color: #00c3ff;
+      color: black;
+    }
+
+    #account {
+      margin-top: 15px;
+      font-size: 14px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>💼 Digital Will</h1>
+
+  <button class="connect" onclick="connectWallet()">Connect Wallet</button>
+  <p id="account">Not Connected</p>
+
+  <hr>
+
+  <button class="death" onclick="declareDeath()">Declare Death</button>
+  <button class="withdraw" onclick="withdraw()">Withdraw Funds</button>
+</div>
+
+<script>
+let provider;
+let signer;
+let contract;
+
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+
+const abi = [
+  "function declareDeceased() public",
+  "function withdraw() public"
+];
+
+// Connect Wallet
+async function connectWallet() {
+  try {
+    if (!window.ethereum) {
+      alert("MetaMask not detected!");
+      return;
+    }
+
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+
+    const address = accounts[0];
+    document.getElementById("account").innerText = "Connected: " + address;
+
+    contract = new ethers.Contract(contractAddress, abi, signer);
+
+    alert("Wallet Connected ✅");
+
+  } catch (error) {
+    console.error(error);
+    alert("Connection failed ❌");
+  }
+}
+
+// Declare Death
+async function declareDeath() {
+  try {
+    const tx = await contract.declareDeceased();
+    await tx.wait();
+    alert("Death Declared ☠️");
+  } catch (error) {
+    console.error(error);
+    alert("Only owner can do this!");
+  }
+}
+
+// Withdraw
+async function withdraw() {
+  try {
+    const tx = await contract.withdraw();
+    await tx.wait();
+    alert("Funds Transferred 💰");
+  } catch (error) {
+    console.error(error);
+    alert("Only beneficiary can withdraw!");
+  }
+}
+</script>
+
+</body>
+</html>
